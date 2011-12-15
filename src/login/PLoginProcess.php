@@ -29,19 +29,17 @@ EOD;
 
 $query2 = <<< EOD
 SELECT 
-    u.node, 
+    u.id AS node, 
     u.name,
-    m.idGroup AS groupUser
-FROM blog_user AS u, blog_member AS m
+    u.type AS groupUser
+FROM Projekt_user AS u
 WHERE 
     u.name        = '{$username}' AND
-    u.passwordUser     = md5('{$password}') AND 
-    m.idUser = u.node
-;
+    u.password     = md5('{$password}');
 EOD;
 
 $res = $mysqli->query($query2) 
-                    or die("<p>Could not query database,</p><code>{$query}</code>");
+                    or die("<p>Could not query database,</p><code>{$query2}</code>");
                     
                     // -----------------------------------------------------------------------------
 //
@@ -56,7 +54,7 @@ $row = $res->fetch_object();
 if($res->num_rows === 1) {
   $_SESSION['userID']       = $row->node;
   $_SESSION['idUser']       = $row->node;
-  $_SESSION['name']     = $row->name;
+  $_SESSION['name']         = $row->name;
   $_SESSION['groupUser']     = $row->groupUser;
   $_SESSION['errorMessage']  =  $error = "Grattis! Inloggningen lyckades; du är grupp $row->groupUser"; 
   

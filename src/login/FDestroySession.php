@@ -10,7 +10,9 @@
 // Destroy the current session (logout user), if it exists. Review the manual
 // http://se.php.net/manual/en/function.session-destroy.php
 //
+//echo "something tried to destroy session!";
 
+/*
 // Unset all of the session variables.
 $_SESSION = array();
 
@@ -22,3 +24,4 @@ if (isset($_COOKIE[session_name()])) {
 
 // Finally, destroy the session.
 session_destroy();
+*/

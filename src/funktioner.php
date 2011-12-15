@@ -1,6 +1,11 @@
 <?php
 
-require_once("../../oophp/SQL/config.php");
+//require_once("../../oophp/SQL/config.php");
+
+function url_exists($url) { 
+    $hdrs = @get_headers($url); 
+    return is_array($hdrs) ? preg_match('/^HTTP\\/\\d+\\.\\d+\\s+2\\d\\d\\s+.*$/',$hdrs[0]) : false; 
+} 
 
 function require_either($page=false, $default=false){
 global $log;
@@ -39,6 +44,7 @@ function tell($string){
 	$debug.=$string."<br/>\n";
 }
 
+//-------------------------
 function form_get(){
 	$arr=func_get_args();
 	$ret=<<<END
@@ -57,6 +63,7 @@ END;
 	return $ret;
 }
 
+
 function form_choice(){
 	$arr=func_get_args();
 	$ret=<<<END
@@ -72,6 +79,16 @@ $ret.="</form>";
 	return $ret;
 }
 
+
+function form_hidden(){
+	$arr=func_get_args();
+	$ret="";
+	foreach($arr as $i)
+		$ret.="<input type='hidden' name='$i' value='{$GLOBALS[$i]}'/>\n";
+	return $ret;
+}
+
+//-------------------------
 function connectMySQL(){
 	$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASSWORD, DB_DATABASE); 
 	
@@ -98,13 +115,6 @@ $arr=$res->fetch_array();
 return $arr[0];
 }
 
-function form_hidden(){
-	$arr=func_get_args();
-	$ret="";
-	foreach($arr as $i)
-		$ret.="<input type='hidden' name='$i' value='{$GLOBALS[$i]}'/>\n";
-	return $ret;
-}
 
 function dice($side=6){
 	return rand(1, $side);

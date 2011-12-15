@@ -14,33 +14,42 @@ class CPage {
   static $instance = false;
   
   static function get_instance(){
+  	CPage::$log.="<br/>\nget_instance()";
   	if (!CPage::$instance)
   	CPage::$instance=new CPage();
   	return CPage::$instance;
   }
   
-  private $html="";
-  
-  protected $iMenu = Array (
-      'Hem' => 'Main',
-      'Info' => 'Info',
-      'Source Code' => '/source.php'
-    );
-    
+  protected $html="";
+  protected $show_debug=true;
+  protected $show_menu=true;
+  protected $iMenu = Array ();    
   protected $iStylesheet;
-  
   protected $title;
 
+  public static $log="Log for Node class";
+  protected function log($text=""){  CPage::$log.="<br/>\n$text";}
+  public function getLog(){ return "<br/>\n" . CPage::$log;}
+  protected function shutdown($text=""){die("$text" . $this->getLog() );}
+  
   // ------------------------------------------------------------------------------------
   //
   // Constructor
   //
-  public function __construct($css=false, $title=false) {    
+  public function __construct($css=false, $title=false) {
+  	  $this->log("__construct($css, $title)");
     if (!$css) $css="stylesheet.css";
     if (!$title) $title="unnamed page";
     $this->iStylesheet = $css;
     $this->title = $title;
-    CPage::$instance = $this; //does this work? 
+    $this->current_page = $_SESSION['current_page'];
+    CPage::$instance = $this; //does this work?
+    $this->iMenu = Array(
+    	    'Hem' => 'main',
+    	    'Info' => 'info',
+    	    'Edit this page' => "edit/{$this->current_page}",
+    	    'Source Code' => 'source.php'
+    );
   }
 
 
@@ -86,10 +95,10 @@ EOD;
 <meta charset=utf-8>
 <title>{$aTitle}</title>
 
-<link rel="stylesheet" href="css/blueprint/screen.css" type="text/css" media="screen, projection">
-<link rel="stylesheet" href="css/blueprint/print.css" type="text/css" media="print">
+<link rel="stylesheet" href="blueprint/screen.css" type="text/css" media="screen, projection">
+<link rel="stylesheet" href="blueprint/print.css" type="text/css" media="print">
 <!--[if lt IE 8]>
-  <link rel="stylesheet" href="css/blueprint/ie.css" type="text/css" media="screen, projection">
+  <link rel="stylesheet" href="blueprint/ie.css" type="text/css" media="screen, projection">
 <![endif]--></code></pre>
 
 <link 
@@ -130,12 +139,13 @@ EOD;
   
   
   public function getUserMenu() {
-    if (!loggedIn()) 
-      $log = "<a href='?action=login'>log in</a>";
+  	  $base_url=$_SESSION['base_url'];
+    if (!$this->loggedIn()) 
+      $log = "<a href='$base_url/login'>log in</a>";
 else {
 	
 	$name= $_SESSION['accountUser'];
-	$log = "$name | <a href='?action=logout'>log out</a> | <a href='?action=userpage'>my account</a>";
+	$log = "$name | <a href='?action=logout'>log out</a> | <a href='$base_url/userpage'>my account</a>";
 	}
   
   $html=<<<END
@@ -147,6 +157,53 @@ END;
 	return $html;
   }
   
+  //-----------------------------------
+  
+  protected function replace_tags_with_php($html){
+  	  $this->log("replace_tags_with_php($html)");
+  	  $html = preg_replace_callback(
+            '/\*\*\*(\w+)\*\*\*/',
+            array($this, 'replace_star_tag')
+            , $html);
+          
+          $html = preg_replace_callback(
+          	  '|\[(\w+)\](.+)\[\/\w+\]|',
+            array($this, 'replace_tag')
+            , $html);
+            
+  //$html = preg_replace('/\*\*\*(\w+)\*\*\*/', 'yope' , $html);  	          
+  return $html;
+  }
+  
+  protected function replace_tag($match){
+  	  $this->log("replace_tag(".print_r($match,true).")");
+  	  echo ("TEST replace_tag:".print_r($match,true)."!");
+    switch($match[1])
+    {
+    case 'menu': return $this->menu($match[2]);
+    	    break;
+    case 'test': return "another sucessfull test";
+    	    break;
+    case 'sidebar': return $this->sidebar($match[2]);
+    	    break;
+    default: return "[$match[1]]{$match[2]}[/$match[1]]"; 
+  	  }
+  }
+
+  protected function replace_star_tag($tag){
+  	  $this->log("replace_star_tag(".print_r($tag,true)-")");
+  	  echo( "TEST replace_star_tag:".print_r($tag,true)."!");
+    switch($tag[1])
+    {
+    case 'current_date': return time();
+    	    break;
+    case 'test': return "<h2>This text was successful!</h2>";
+    	    break;
+    	    default: return "***{$tag[1]}***"; 
+  	  }
+  }
+  
+  //---------------------------------
   
   public function loggedIn($title=false) {
   return false;
@@ -155,6 +212,7 @@ END;
   public function PageHeader($title=false) {
   if (!$title) $title=$this->title;
     $menu = "";
+    if ($this->show_menu)
     foreach($this->iMenu as $key => $value) {
       $menu .= "<a href='{$value}'>{$key}</a> | ";
     }
@@ -229,6 +287,8 @@ END;
 $htmlErrorMessage = $this->getErrorMessage();
 $sidebar = $this->getSidebar($sBody);
 
+$aBody = $this->replace_tags_with_php($aBody);
+
     $html = <<<EOD
 <div class='content'>
 $htmlErrorMessage
@@ -250,7 +310,7 @@ EOD;
   //
   //
   public function footer($text=false) {
-    if ($text) $text ="<p>$text</p>";
+    if (($this->show_debug)&&($text)) $text ="<p>$text</p>";
     $html = <<<EOD
 <footer>
 <a href="http://validator.w3.org/check/referer">html</a>

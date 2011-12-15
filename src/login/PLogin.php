@@ -7,5 +7,8 @@ $html =<<<END
 <P>Name: <input type=password name=password></P>
 <p><button type=submit name=action value="login">Log In</button></p>
 </form>
-
 END;
+
+$page->header("login page");
+$page->body("$html");
+$page->footer($log);
