@@ -1,5 +1,5 @@
 <?php
-class CContent {
+class Node{
 	public $prefix="";
 	public $title="unnamed"; 
 	public $content="This page has no content. <a href='/edit'>Click to Edit</a>";
@@ -7,9 +7,10 @@ class CContent {
 	public $id='main';
 	public $idUser=0;
 	public $name=false;
+	public $tags;
 	public static $log="Log for Node class";
-	private function log($text=""){  CContent::$log.="<br/>\n$text";}
-	public function getLog(){ return "<br/>\n" . CContent::$log;}
+	private function log($text=""){  Node::$log.="<br/>\n$text";}
+	public function getLog(){ return "<br/>\n" . Node::$log;}
 	private function shutdown($text=""){die("$text" . $this->getLog() );}
 	
 	//------------------------------
@@ -19,6 +20,7 @@ public function __construct($id='main', $load=1){
 	$this->mysqli=$mysqli;
 	$this->prefix=$prefix;
 	$this->base_url=$_SESSION['base_url'];
+	$this->tags = array();
 	if (isset($_SESSION['idUser'])) $this->idUser=$_SESSION['idUser'];
 	$row=false;
 	
@@ -40,6 +42,7 @@ private function loadNode($id=false){
 		$this->id = $row->id;
 		$this->node = $row->id;
 		$this->name = $row->name;
+		$this->tags = $this->getTags($this->id);
 	 	}
 	 else $this->content="This page has no content. <a href='{$_SESSION['base_url']}/edit/$id'>Click to Edit</a>";
 	}
@@ -96,7 +99,27 @@ private function getNode($id){
 	$row = $res->fetch_object();
 	$res->close();
 	$this->log("result:".print_r($row, true));
+	
+	
 	return $row; 
+	}
+
+private function getTags($id){
+	$pre=$this->prefix;
+	$arr = array();
+	$this->log("getTags($id)");
+		$query = "SELECT T.* FROM {$pre}node AS T, {$pre}node_tag AS NT WHERE T.type LIKE 'tag' 
+		AND NT.tag_id = T.id 
+		AND NT.node_id = $id;";
+	$res = $this->mysqli->query($query) 
+	or $this->shutdown("Could not query database with query '$query'  "
+		. print_r($res). $this->mysqli->error);
+	$html="";
+	while ($row = $res->fetch_object())
+		$arr[$row->id] = $row->name;
+	$res->close();
+	$this->log("tags:".print_r($arr, true));
+	return $row;
 	}
 	
 private function getNodeByName($name){
@@ -116,26 +139,35 @@ private function getNodeByName($name){
 
 //---------------------------------
 public function editNode(){
+	$this->log("editNode($id)");
 	$content=$this->content;
 	$node=$this->node;
 	$name=$this->name;
 	$author=$this->idUser;
 	$title=$this->title;
-	$tags=$this->tags;
+	$tags = implode(', ', $this->tags);
 	$base_url = $this->base_url;
+	$name = $_SESSION['current_page'];
 
 return<<<END
 	<fieldset>
 	  <legend>Edit Post</legend>
-	  <form action='{$base_url}/save/$node' method='get'>
-	Title: <input type="text" name="title" value="$title"/>
-	Name: <input type="text" name="name" value="$name"/>
+	  <form action='{$base_url}/Save/$node' 
+	  	method='get' 
+	  	class="edit_page">
+	Title: <input type="text" name="title" value="$title"/><br/>
+	Name: <input type="text" name="name" value="$name"/><br/>
+	Tags: <input type="text" name="tags" value="$tags"/><br/>
+	<input type="radio" name="type" value="post"/> Post <br/>
+	<input type="radio" name="type" value="comment"/> Comment <br/>
+	<input type="radio" name="type" value="page"/> Page <br/>
+	Blueprint.css: <input type="checkbox" name="blueprint" /><br/>
+	Javascript <input type="checkbox" name="javascript" /><br/>
 	Content: <textarea name="content">$content</textarea>
-	Tags: <input type="text" name="tags" value="$tags"/>
 	<button type="submit" 
 		name="action" 
 		value="post">
-		Add Post</button>
+		Save Page</button>
 	  </form>
 	</fieldset>
 END;
@@ -160,20 +192,24 @@ public function update(){
 
 //---------------------------------------
 public function uploadNode($id=false, $name=false, $author=false, $title="", $content="", $tags=""){
-	$this->log("uploadNode($id, $author, $title, $content, $tags)");
+	$this->log("uploadNode($id, $author, $title, $content, '$tags')");
+	$this->log("everything checks out!");
 	if (!$id) $this->shutdown("no node id");
+$this->log("everything checks out! 2");	
 	if (!$author) $this->shutdown("no user id");
+	$this->log("everything checks out! 3");	
 	if (!is_numeric($id)) $this->shutdown("node id not numeric");
+	$this->log("everything checks out! 4");	
 	if (!$name) $name = $id;
-	
+$this->log("everything checks out! 5");	
 $sql="CALL edit_node($id, '$name', $author, '$title', 'page', '$content'); \n";
 
 if ($tags){
 	$tags = explode(',', $tags);
 	foreach ($tags as $i => $j) 
-		$sql.="CALL tag_node($id,'{$j}','this is a tag'); \n";
+		$sql.="CALL tag_node($id, $author, '{$j}','this is a tag'); \n";
 }
-$this->log("calling");
+$this->log("calling with sql=$sql");
 $this->call_SQL($sql);
 $this->log("called");
 }

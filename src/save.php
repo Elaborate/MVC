@@ -1,9 +1,10 @@
 <?php
-require_once("src/CContent.php");
+require_once("src/CNode.php");
 
 $p = get_page();
 
-$node = new CContent($p,false);
+$node = new Node($p,false);
 $node->update();
-
-header("Location: $base_url/$p");
+include("src/sitemap.php");
+echo "This is SAVE.php <br/>\n" . $log . $node->getLog();
+//header("Location: $base_url/$p");

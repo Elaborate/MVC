@@ -1,2 +1,2 @@
 <?php
-require_once("src/CContent.php");
+require_once("src/CNode.php");

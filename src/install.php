@@ -30,8 +30,38 @@ define('DB_DATABASE',   '$db_database');    // <-- mysql db name
 define('DB_HOST',       '$db_host');  // <-- mysql server host
 END;
 file_put_contents( "../site/config.php", $file);
+
+// INSTALL .htaccess
+// Note: check name of folder
+$access=<<<END
+#(if the file, dir or link is not, then redirect to index.php)
+RewriteEngine on
+
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+
+RewriteRule ^.*$ - [NC,L]
+RewriteRule ^.*$ /Projekt/index.php [NC,L]
+END;
+
+file_put_contents( "../.htaccess", $access);
+
+$robots=<<<END
+User-agent: *
+Disallow: /save/
+Disallow: /Save/
+
+Sitemap: $base_url/sitemap.xml
+END;
+
+file_put_contents( "../robots.txt", $robots);
+
 // INSTALL SQL
 header("Location: $base_url/src/install_sql.php");
+
 }
 
 

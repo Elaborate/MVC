@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+      <loc>http://napse.net/Projekt/node/main</loc>
+      <lastmod>0000-00-00</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority></priority>
+</url><url>
+      <loc>http://napse.net/Projekt/node/info</loc>
+      <lastmod>0000-00-00</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority></priority>
+</url><url>
+      <loc>http://napse.net/Projekt/node/Help</loc>
+      <lastmod>0000-00-00</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority></priority>
+</url><url>
+      <loc>http://napse.net/Projekt/node/tos</loc>
+      <lastmod>2012-01-11</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority></priority>
+</url><url>
+      <loc>http://napse.net/Projekt/node/yup</loc>
+      <lastmod>2012-01-11</lastmod>
+      <changefreq>monthly</changefreq>
+      <priority></priority>
+</url>
+<url>
+      <loc>http://napse.net/Projekt/pages/posts</loc>
+      <lastmod>2012-01-11</lastmod>
+      <changefreq>daily</changefreq>
+      <priority>1</priority>
+</url>
+</urlset>

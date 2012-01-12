@@ -1,4 +1,0 @@
-<?php
-
-
-get_request('content', 'title', 'tags')
